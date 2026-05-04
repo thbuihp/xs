@@ -1,0 +1,38 @@
+name: Tự động cập nhật IPTV Playlist 15 phút/lần
+
+on:
+  schedule:
+    # Chạy mỗi 15 phút
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Cho phép bấm nút chạy thủ công
+
+jobs:
+  update-playlist:
+    runs-on: ubuntu-latest
+    # Thêm quyền để bot có thể đẩy file lên repo
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cài đặt Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Cài đặt thư viện
+        run: pip install requests
+
+      - name: Chạy script
+        run: python main.py
+
+      - name: Commit và Push thay đổi
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add iptv_safe_playlist.m3u
+          # Chỉ commit nếu file có sự thay đổi nội dung
+          git commit -m "Auto-update IPTV: $(date)" || echo "Không có thay đổi"
+          git push
